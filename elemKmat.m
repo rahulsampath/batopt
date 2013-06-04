@@ -1,5 +1,5 @@
 %Element Stiffness Matrix
-function mat = elemStiffMat()
+function mat = elemKmat()
 
 %2-point quadrature rule
 gWts = [1; 1];
