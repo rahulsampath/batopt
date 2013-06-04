@@ -1,8 +1,34 @@
 
-%Assume uniform grid in space and time.
+%Number of time steps
+N = 10; 
 
-%0. Compute B.
-%1. Initial Guess for g (K1b, K2b, K3b)
+%Time step 
+dt = 0.1;
+
+%Number of elements in each of the 3 segments.
+Ne = [10; 10; 10];
+
+%Total number of grid points
+M = 1 + sum(Ne);
+
+%grid spacing
+h = 0.1;
+
+cp = [1.0; 1.0; 1.0];
+
+Ka = [10; 10; 10];
+Kb = [0; 0; 0];
+
+maxOptIters = 100;
+
+elemMmat = elemMassMat();
+elemKmat = elemStiffMat();
+
+Bmat = formBmat(elemMmat, M, Ne, h, dt, cp);
+
+for iter = 1:maxOptIters
+end
+
 %2. Loop (Max Optimization Iterations or Gradient is zero)
    %1. Solve Forward Problem
 	%1. Time Stepping (Forward in time)
