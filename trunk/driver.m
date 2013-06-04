@@ -21,10 +21,10 @@ Kb = [0; 0; 0];
 
 maxOptIters = 100;
 
-elemMmat = elemMassMat();
-elemKmat = elemStiffMat();
+elMmat = elemMmat();
+elKmat = elemKmat();
 
-Bmat = formBmat(elemMmat, M, Ne, h, dt, cp);
+Bmat = formBmat(elMmat, M, Ne, h, dt, cp);
 
 for iter = 1:maxOptIters
 end

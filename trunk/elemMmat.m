@@ -1,5 +1,5 @@
 %Element Mass Matrix 
-function mat = elemMassMat()
+function mat = elemMmat()
 
 %2-point quadrature rule
 gWts = [1; 1];
