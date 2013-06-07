@@ -1,4 +1,5 @@
-function Cvec = formCvec(M, h, dt, p)
+%Integrated Source Vector
+function Cvec = formCvec(M, h, H, Tinf, dt, p)
 
 %2-point quadrature rule
 gWts = [1; 1];
@@ -22,4 +23,7 @@ for e = 1:(M - 1)
     x0 = x0 + h;
 end
 
+%Robin vector correction
+Cvec(1) = Cvec(1) + (H*Tinf);
+Cvec(M) = Cvec(M) - (H*Tinf);
 

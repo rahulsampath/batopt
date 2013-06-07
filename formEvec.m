@@ -1,3 +1,5 @@
+%Part of RHS for Adjoint system
+%Note: Values at initial time are not stored.
 function Evec = formEvec(T, Tstar, M, p)
 
 Evec = zeros(M, 1);
