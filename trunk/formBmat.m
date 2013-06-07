@@ -1,3 +1,4 @@
+%Mass Matrix
 function Bmat = formBmat(elMmat, M, Ne, h, dt, cp)
 
 Bmat = zeros(M, M);

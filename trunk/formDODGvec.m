@@ -1,3 +1,4 @@
+%Derivative of the objective function with respect to the control variables.
 function dOdGvec = formDODGvec(Lvec, dFdG1vec, dFdG2vec, dFdG3vec)
 
 dOdGvec = zeros(3, 1);

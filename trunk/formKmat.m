@@ -1,3 +1,4 @@
+%Stiffness Matrix
 function Kmat = formKmat(elKmat, M, Ne, h, Ka, Kb, dt, p)
 
 K = Ka + (Kb*p*dt);
