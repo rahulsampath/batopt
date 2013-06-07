@@ -1,10 +1,10 @@
-function T = solveForward(Bmat, elKmat, M, N, Ne, h, H, Ka, Kb, Tinf, I, dt)
+function T = solveForward(Bmat, elKmat, M, N, Ne, h, H, Ka, Kb, Tinf, Tinit, dt)
 
 T = zeros(M, N);
 
 Cvec = formCvec(M, h, H, Tinf, dt, 1);
 Amat = formAmat(Bmat, elKmat, M, Ne, h, H, Ka, Kb, dt, 1);
-rhs = Cvec + (Bmat*I);
+rhs = Cvec + (Bmat*Tinit);
 %Linear Solve
 T(:, 1) = Amat\rhs; 
 

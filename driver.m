@@ -21,10 +21,10 @@ H = 1.0;
 Tinf = 300;
 
 %Initial Temperature
-I = 300*ones(M, 1);
+Tinit = 300*ones(M, 1);
 
 %Observations: Taken at x = 0 and all time > 0.
-Tstar = zeros(N, 1);
+Tstar = zeros(1, N);
 for p = 1:N
     Tstar(p) = 300 + (p*2.0);
 end
@@ -36,18 +36,27 @@ cp = [1.0; 1.0; 1.0];
 Ka = [10; 10; 10];
 Kb = [0; 0; 0];
 
-maxOptIters = 100;
-
 elMmat = elemMmat();
 elKmat = elemKmat();
 
+%Mass matrix
 Bmat = formBmat(elMmat, M, Ne, h, dt, cp);
+
+%Approximate Inverse of Hessian Matrix
+invHess = eye(3, 3);
+
+%Maximum optimization iterations
+maxOptIters = 100;
 
 dfdG1vec = zeros(M, N);
 dfdG2vec = zeros(M, N);
 dfdG3vec = zeros(M, N);
-for iter = 1:maxOptIters
-   T = solveForward(Bmat, elKmat, M, N, Ne, h, H, Ka, Kb, Tinf, I, dt);
+T = solveForward(Bmat, elKmat, M, N, Ne, h, H, Ka, Kb, Tinf, Tinit, dt);
+deltaT = T(1, :) - Tstar;
+obj = sum(deltaT.^2);
+if obj <= 1.0e-12
+   disp('Objective function value is below the tolerance!');
+else
    Lvec = solveAdjoint(T, Tstar, Bmat, elKmat, M, N, Ne, h, H, Ka, Kb, dt);
    for p = 1:N
       dfdG1vec(:, p) = formDFDGvec(elKmat, M, Ne, h, T, dt, p, 1);
@@ -55,18 +64,60 @@ for iter = 1:maxOptIters
       dfdG3vec(:, p) = formDFDGvec(elKmat, M, Ne, h, T, dt, p, 3);
    end
    dOdGvec = formDODGvec(Lvec, dFdG1vec, dFdG2vec, dFdG3vec);
-   %4. BFGS update
+   gradOnorm = sqrt((dOdGvec')*dOdGvec);
+   if gradOnorm <= 1.0e-12
+      disp('Norm of the gradient is below the tolerance!') 
+   else   
+      for iter = 1:maxOptIters
+          dG = -invHess*dOdGvec;
+          alpha = 1.0;
+          KbNew = Kb + dG;
+          T = solveForward(Bmat, elKmat, M, N, Ne, h, H, Ka, KbNew, Tinf, Tinit, dt);
+          deltaT = T(1, :) - Tstar;
+          objNew = sum(deltaT.^2);
+          if objNew >= obj
+             while alpha > 1.0e-12
+                   alpha = 0.5*alpha;
+                   dG = 0.5*dG;
+                   KbNew = Kb + dG;
+                   T = solveForward(Bmat, elKmat, M, N, Ne, h, H, Ka, KbNew, Tinf, Tinit, dt);
+                   deltaT = T(1, :) - Tstar;
+                   objNew = sum(deltaT.^2);
+                   if objNew < obj
+                      break;
+                   end
+             end
+             if objNew >= obj
+                disp('Line Search Failed!')
+                break;
+             end
+          end
+          Kb = KbNew;
+          obj = objNew;
+          if obj <= 1.0e-12
+             disp('Objective function value is below the tolerance!');
+             break;
+          end
+          Lvec = solveAdjoint(T, Tstar, Bmat, elKmat, M, N, Ne, h, H, Ka, Kb, dt);
+          for p = 1:N
+              dfdG1vec(:, p) = formDFDGvec(elKmat, M, Ne, h, T, dt, p, 1);
+              dfdG2vec(:, p) = formDFDGvec(elKmat, M, Ne, h, T, dt, p, 2);
+              dfdG3vec(:, p) = formDFDGvec(elKmat, M, Ne, h, T, dt, p, 3);
+          end
+          dOdGvecNew = formDODGvec(Lvec, dFdG1vec, dFdG2vec, dFdG3vec);
+          yVec = dOdGvecNew - dOdGvec;
+          dOdGvec = dOdGvecNew;
+          gradOnorm = sqrt((dOdGvec')*dOdGvec);
+          if gradOnorm <= 1.0e-12
+             disp('Norm of the gradient is below the tolerance!') 
+             break;
+          end
+          rho = 1.0/((yVec') * dG);
+          %BFGS update
+          invHess = ((eye(3,3) - (rho*dG*(yVec')))*invHess*(eye(3,3) - (rho*yVec*(dG')))) + (rho*dG*(dG'));
+      end
+   end
 end
-
-%2. Loop (Max Optimization Iterations or Gradient is zero)
-	%1. New search direction p = - H (DO/Dg)
-        %2. gNew = gOld + alpha p (line search) 
-        %3. dg = gNew - gOld
-        %4. y = newGradient - oldGradient 
-        %5. rho = 1/(y dot dg)
-        %6. update H using BFGS formula
-
-
  
  
  
